@@ -80,19 +80,6 @@ const getAllEmails = async (req, res) => {
   }
 };
 
-const getSendFrom = async (req, res) => {
-  try {
-    let emails = await email.getFromEmail(req.body.from);
-    if(emails !== null) {
-      return res.status(200).send(emails);
-    }
-    return res.status(404).send("Reciept doesn't exist!");
-  } catch (error) {
-    if(error) console.log(error);
-    return res.status(500).send(`Bad request!`);
-  }
-};
-
 const removeLog = async (req, res) => {
   try {
     let e = await email.remove(req.params.id);
@@ -111,6 +98,5 @@ module.exports = {
   createEmail,
   validateEmail,
   getAllEmails,
-  getSendFrom,
   removeLog
 }
