@@ -7,7 +7,7 @@ const { Validator } = require('node-input-validator');
 
 const email = require('../pkg/models/email');
 
-const createEmail = async (req, res) => {
+const validateEmail = async (req, res, next) => {
   try {    
     const v = new Validator(req.body, {
       from: 'required|email',
@@ -20,7 +20,15 @@ const createEmail = async (req, res) => {
     if (!matched) {
       return res.status(422).send(v.errors);
     }
-    
+    next();
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send('ISE');
+  }
+};
+
+const createEmail = async (req, res) => {
+  try {    
     const mailgun = new Mailgun(formData);    
     const mg = mailgun.client({
       username: process.env.MAILGUN_USERNAME,
@@ -54,9 +62,10 @@ const createEmail = async (req, res) => {
     return res.status(200).send(output.message);    
   } catch (error) {
     console.log(error);
-    res.status(500).send('ISE');
+    return res.status(500).send('ISE');
   }
 }
+
 
 const getAllEmails = async (req, res) => {
   try {
@@ -100,6 +109,7 @@ const removeLog = async (req, res) => {
 
 module.exports = {
   createEmail,
+  validateEmail,
   getAllEmails,
   getSendFrom,
   removeLog
