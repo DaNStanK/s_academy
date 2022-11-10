@@ -35,10 +35,6 @@ const getAll = async () => {
   return Email.find({}).sort({ created: -1 });;
 };
 
-const getFromEmail = async (email) => {
-  return Email.findOne({ from: email });
-};
-
 const remove = async (id)=> {
   return Email.remove({ _id: id });
 };
@@ -46,7 +42,6 @@ const remove = async (id)=> {
 module.exports = {
   create,
   getAll,
-  getFromEmail,
   remove
 };
 
