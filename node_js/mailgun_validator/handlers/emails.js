@@ -34,31 +34,29 @@ const createEmail = async (req, res) => {
       username: process.env.MAILGUN_USERNAME,
       key: process.env.MAILGUN_KEY
     });
-    let messageParams = {
-      from: req.body.from,
-      to: req.body.to,
-      subject: req.body.subject,
-      html: req.body.html
-    };
     
     let filePath = path.join(__dirname, '..', 'pkg', 'uploads', 'download.png');
-
     let data = await fs.readFileSync(filePath);
-    let file = {
-      filename: 'download.png',
-      data
-    };
-    messageParams.attachment = file;
     let output = await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageParams
+      {
+        from: req.body.from,
+        to: req.body.to,
+        subject: req.body.subject,
+        html: req.body.html,
+        attachment: {
+          filename: 'download.png',
+          data: data
+        }
+      }
     );
 
     await email.create({
       ...messageParams,
       content: req.body.html, 
       created: new Date()
-    });        
+    });
+
     return res.status(200).send(output.message);    
   } catch (error) {
     console.log(error);
@@ -66,8 +64,7 @@ const createEmail = async (req, res) => {
   }
 }
 
-
-const getAllEmails = async (req, res) => {
+const getAllLogs = async (req, res) => {
   try {
     let emails = await email.getAll();
     if(emails.length === 0) {
@@ -97,6 +94,6 @@ const removeLog = async (req, res) => {
 module.exports = {
   createEmail,
   validateEmail,
-  getAllEmails,
+  getAllLogs,
   removeLog
 }
