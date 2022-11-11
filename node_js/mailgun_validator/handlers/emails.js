@@ -3,59 +3,38 @@ const path = require('path');
 const fs = require('fs');
 const Mailgun = require('mailgun.js');
 const formData = require('form-data');
-const { Validator } = require('node-input-validator');
 
 const email = require('../pkg/models/email');
-
-const validateEmail = async (req, res, next) => {
-  try {    
-    const v = new Validator(req.body, {
-      from: 'required|email',
-      to: 'required|email',
-      subject: 'required|string',
-      html: 'required|string'
-    });    
-    const matched = await v.check();    
-    if (!matched) {
-      return res.status(422).send(v.errors);
-    }
-    next();
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send('ISE');
-  }
-};
+const validator = require('../pkg/mailer/index');
 
 const createEmail = async (req, res) => {
+
   try {    
+    await validator.validate(req.body);
     const mailgun = new Mailgun(formData);    
     const mg = mailgun.client({
       username: process.env.MAILGUN_USERNAME,
       key: process.env.MAILGUN_KEY
-    });
-    let messageParams = {
-      from: req.body.from,
-        to: req.body.to,
-        subject: req.body.subject,
-        html: req.body.html
-    };    
+    }); 
     let filePath = path.join(__dirname, '..', 'pkg', 'uploads', 'download.png');
     let data = await fs.readFileSync(filePath);
     let file = {
         filename: 'download.png',
         data
     };
-    messageParams.attachment = file
-    let output = await mg.messages.create(
+    await mg.messages.create(
       process.env.MAILGUN_DOMAIN,
-      messageParams
+      {
+        ...req.body,
+        attachment: file
+      }
     );
     await email.create({
-      ...messageParams,
-      content: req.body.html, 
+      ...req.body,
+      content: req.body.html,
       created: new Date()
     });
-    return res.status(200).send(output.message);    
+    return res.status(200).send('Ok');    
   } catch (error) {
     console.log(error);
     return res.status(500).send('ISE');
@@ -91,7 +70,6 @@ const removeLog = async (req, res) => {
 
 module.exports = {
   createEmail,
-  validateEmail,
   getAllLogs,
   removeLog
 }
