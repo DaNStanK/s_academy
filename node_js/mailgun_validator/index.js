@@ -10,7 +10,7 @@ db.init();
 api.use(express.json());
 
 api.get('/api/v1/emails', mailHandler.getAllLogs);
-api.post('/api/v1/emails', mailHandler.validateEmail, mailHandler.createEmail);
+api.post('/api/v1/emails', mailHandler.createEmail);
 api.delete('/api/v1/emails/:id', mailHandler.removeLog);
 
 api.listen(process.env.PORT, err => {
